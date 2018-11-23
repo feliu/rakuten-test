@@ -15,7 +15,7 @@ This reference architecture provides a set of YAML templates for deploying Rakut
 
 ## Overview
 
- I created this architecture with automation and security in mind. The application and database are contained in a private subnet. The clients will be able to connect to the app using the load balancer. For access to the database, we will use the provided bastion host that automatically sync the public keys of the IAM users of the AWS account where its deployed.
+ I created this architecture with automation and security in mind. The application and database are contained in a private subnet. The clients will be able to connect to the app using the load balancer. For access to the database, we will use the provided bastion host that automatically sync the public keys of the IAM users from the AWS account where its deployed.
 
 The repository consists of a set of nested templates that deploy the following:
 
@@ -93,7 +93,7 @@ This set of templates deploys the following network design:
         bash ./services/app/build_push_to_ecr.sh 220961139697 eu-west-1
 
 
-9. In step 3, we create everything except for the ECS Service. Now that we have the database ready, Uncomment the block code found on the file infrastructure/app.yaml and update the stack.
+9. In step 3, we created everything except for the ECS Service. Now that we have the database ready, Uncomment the block code found on the file infrastructure/app.yaml and update the stack.
 
         #   App:
         #       Type: AWS::CloudFormation::Stack
