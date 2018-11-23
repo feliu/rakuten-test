@@ -1,0 +1,46 @@
+Description: >
+    This template deploys a VPC, with a pair of public and three private subnets in each AZ.
+    Each private subnets will represent a different environment: Production, Staging, and Development.
+    It deploys an Internet Gateway, with a default route on the public subnets.
+    It deploys a pair of NAT Gateways (one in each AZ),  and default routes for them in the private subnets.
+    It deploys 3 Apps. One for each environment. Every app is composed of an ECS Cluster, an RDS and several containers like the CastingAsia API (postgrest), and several NGINX+Angular.
+
+    Last Modified: 13th April 2018
+    Author: Eduard Feliu <eduard@anymindgroup.com>
+
+
+
+Resources:
+    VPC:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/vpc.yaml
+            Parameters:
+                EnvironmentName:    !Ref AWS::StackName
+                VpcCIDR:            10.180.0.0/16
+                PublicSubnetAZ1CIDR:  10.180.8.0/21
+                PublicSubnetAZ2CIDR:  10.180.16.0/21
+                PrivateSubnetProdAZ1CIDR: 10.180.24.0/21
+                PrivateSubnetStgAZ1CIDR: 10.180.32.0/21
+                PrivateSubnetDevAZ1CIDR: 10.180.40.0/21
+                PrivateSubnetProdAZ2CIDR: 10.180.48.0/21
+                PrivateSubnetStgAZ2CIDR: 10.180.56.0/21
+                PrivateSubnetDevAZ2CIDR: 10.180.64.0/21
+
+    SecurityGroups:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/security-groups.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                VPC: !GetAtt VPC.Outputs.VPC
+
+    ALB:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/load-balancers.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                VPC: !GetAtt VPC.Outputs.VPC
+                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+                SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup

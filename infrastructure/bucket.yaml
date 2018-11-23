@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Bucket for saving all the CloudFormation files.
+
+Resources:
+  InfrastructureBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: BucketOwnerFullControl
+      BucketName: rakuten-infrastructure
+Outputs:
+  Name:
+    Description: InfrastructureBucket URL
+    Value: !Ref InfrastructureBucket

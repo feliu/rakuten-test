@@ -1,5 +1,5 @@
 
-# AdAsia architecture stack
+# Rakuten architecture stack
 
 This reference architecture provides a set of YAML templates for deploying Rakuten test architecture ([Amazon ECS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html)) with [AWS CloudFormation](https://aws.amazon.com/cloudformation/).
 
@@ -63,4 +63,11 @@ This set of templates deploys the following network design:
 
 ## How to reproduce the setup
 
-1. Lorem ipsum dium
+1. Upload the
+
+    aws cloudformation create-stack \
+    --stack-name bucket \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-body file://infrastructure/bucket.yaml \
+    --region eu-west-1
+
