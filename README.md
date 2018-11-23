@@ -93,7 +93,7 @@ This set of templates deploys the following network design:
         bash ./services/app/build_push_to_ecr.sh 220961139697 eu-west-1
 
 
-9. In step 3, we create everything except for the ECS Service. Now that we have the database ready, Uncomment the block code found on the file infrastructure/app.yaml and update the stack.
+9. In step 3, we created everything except for the ECS Service. Now that we have the database ready, Uncomment the block code found on the file infrastructure/app.yaml and update the stack.
 
         #   App:
         #       Type: AWS::CloudFormation::Stack
