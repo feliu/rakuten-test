@@ -17,8 +17,6 @@ This reference architecture provides a set of YAML templates for deploying Rakut
 
 ## Overview
 
-![infrastructure-overview](images/architecture_overview.png)
-
 
 The repository consists of a set of nested templates that deploy the following:
 
@@ -63,11 +61,11 @@ This set of templates deploys the following network design:
 
 ## How to reproduce the setup
 
-1. Upload the
+1. Upload the bucket used to store the CloudFormation files.
 
-    aws cloudformation create-stack \
-    --stack-name bucket \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --template-body file://infrastructure/bucket.yaml \
-    --region eu-west-1
+        aws cloudformation create-stack \
+        --stack-name bucket \
+        --capabilities CAPABILITY_NAMED_IAM \
+        --template-body file://infrastructure/bucket.yaml \
+        --region eu-west-1  
 
