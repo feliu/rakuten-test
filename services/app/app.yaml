@@ -1,6 +1,5 @@
 Description: >
-    This is an example of a long running ECS service that needs to connect to another ECS service (product-service)
-    via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
+    ECS service for the rakuten app
 
 Parameters:
 
