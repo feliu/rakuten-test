@@ -99,8 +99,38 @@ This set of templates deploys the following network design:
         --stack-name ecr \
         --capabilities CAPABILITY_NAMED_IAM \
         --template-body file://infrastructure/ecr.yaml \
-        --region eu-west-1 
+        --region eu-west-1
 
 8. Build and push the Docker image passing the account id and region as a parameter
 
         bash ./services/app/build_push_to_ecr.sh 220961139697 eu-west-1
+
+
+9. Uncomment the block code found on the file infrastructure/app.yaml
+
+        #   App:
+        #       Type: AWS::CloudFormation::Stack
+        #       Properties:
+        #           TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/services/app.yaml
+        #           Parameters:
+        #               VPC: !Ref VPC
+        #               Cluster: !GetAtt ECSCluster.Outputs.Cluster
+        #               Listener: !Ref Listener
+        #               DNSLoadBalancer: !Ref DNSLoadBalancer
+        #               ListenerPriority: 1
+        #               RepositoryName: "app"
+        #               MySQLHost: !GetAtt RDS.Outputs.RdsDbURL
+
+
+We commented this block because we need to have the RDS ready and the image on the ECR repository before deploying the Task on the ECS Cluster.
+
+10. Update the master stack again.
+
+        bash deploy_master_stack.sh
+
+11. Use the internal DNS of the load balancer to check if the app work correctly.
+
+        curl master-1337603368.eu-west-1.elb.amazonaws.com:5000
+
+12. We already received the Hello world!
+

@@ -40,7 +40,6 @@ Parameters:
         Type: String
 
     MySQLHost:
-        Default: md11fsa1vwdpwm4.cmuor8zcenjr.eu-west-1.rds.amazonaws.com
         Description: Host address of RDS.
         Type: String
 

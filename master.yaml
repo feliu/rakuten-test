@@ -53,8 +53,6 @@ Resources:
                     VPC: !GetAtt VPC.Outputs.VPC
                     SecurityGroup: !GetAtt SecurityGroups.Outputs.BastionHostSecurityGroup
                     PublicSubnet: !GetAtt VPC.Outputs.PublicSubnetAZ1
-                    SubDomain: "bastion"
-                    Domain: "casting-asia.net"
     AppStaging:
         Type: AWS::CloudFormation::Stack
         Properties:
@@ -77,4 +75,3 @@ Resources:
                 RDSSecurityGroup: !GetAtt SecurityGroups.Outputs.RDSSecurityGroup
                 DBSnapshot: ""
                 DatabaseInstanceClass: "db.t2.micro"
-                Domain: "casting-asia.net"

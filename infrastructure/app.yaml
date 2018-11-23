@@ -41,9 +41,7 @@ Parameters:
     DatabaseInstanceClass:
         Description: Instance type for RDS.
         Type: String
-    Domain:
-        Description: Domain name used for our services.
-        Type: String
+
 
 
 Resources:
@@ -67,21 +65,20 @@ Resources:
                 SecurityGroup: !Ref RDSSecurityGroup
                 DBSnapshot: !Ref DBSnapshot
                 DatabaseInstanceClass: !Ref DatabaseInstanceClass
-                Domain: !Ref Domain
-                SubDomain: "db-staging"
                 PrivateSubnetAZ1: !Ref PrivateSubnetAZ1
                 PrivateSubnetAZ2: !Ref PrivateSubnetAZ2
- #   App:
- #       Type: AWS::CloudFormation::Stack
- #       Properties:
- #           TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/services/app.yaml
- #           Parameters:
- #               VPC: !Ref VPC
- #               Cluster: !GetAtt ECSCluster.Outputs.Cluster
- #               Listener: !Ref Listener
- #               DNSLoadBalancer: !Ref DNSLoadBalancer
- #               ListenerPriority: 1
- #               RepositoryName: "app"
+#    App:
+#        Type: AWS::CloudFormation::Stack
+#        Properties:
+#            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/services/app/app.yaml
+#            Parameters:
+#                VPC: !Ref VPC
+#                Cluster: !GetAtt ECSCluster.Outputs.Cluster
+#                Listener: !Ref Listener
+#                DNSLoadBalancer: !Ref DNSLoadBalancer
+#                ListenerPriority: 1
+#                RepositoryName: "app"
+#                MySQLHost: !GetAtt RDS.Outputs.RdsDbURL
 
 
 

@@ -2,13 +2,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'VPC: highly available SSH bastion host/instance, a cloudonaut.io template'
 Parameters:
-  Domain:
-    Description: Domain name used for the Bastion Host.
-    Type: String
-
-  SubDomain:
-    Description: SubDomain name used for the Bastion Host.
-    Type: String
 
   VPC:
     Description: VPC id where all the resources will be located.
