@@ -87,7 +87,20 @@ This set of templates deploys the following network design:
 
         ssh eduard.feliu@54.72.112.230
 
-6. Copy the file app.sql provided in the test and execute it using the mysql client from the bastion hosts. The bastion host is located in the public subnet and has access to the RDS.
+6. Copy the file app.sql provided in the test and execute it using the mysql client from the bastion hosts. The bastion host is located in the public subnet and has access to the RDS. Example below.
+
+        [eduard.feliu@ip-10-180-10-81 ~]$ mysql --host=md1bmfwru3q7ko8.cmuor8zcenjr.eu-west-1.rds.amazonaws.com --user=root --password=12345678 -s rakutendb < app.sql
+        [eduard.feliu@ip-10-180-10-81 ~]$
 
 
-        mysql --host=mmd1bmfwru3q7ko8.cmuor8zcenjr.eu-west-1.rds.amazonaws.com --user=root --password=12345678 -s rakutendb < app.sql
+7. Create the ECR repository for the Docker image that will contain the Flask App.
+
+        aws cloudformation create-stack \
+        --stack-name ecr \
+        --capabilities CAPABILITY_NAMED_IAM \
+        --template-body file://infrastructure/ecr.yaml \
+        --region eu-west-1 
+
+8. Build and push the Docker image passing the account id and region as a parameter
+
+        bash ./services/app/build_push_to_ecr.sh 220961139697 eu-west-1
