@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: RDS
+
+# Database stack creation prerequisite:  First create a VPC stack - see README for more info
+Parameters:
+
+
+  SubDomain:
+    Description: SubDomain name
+    Type: String
+
+  Domain:
+    Description: Domain name used for the RDS.
+    Type: String
+
+  SecurityGroup:
+    Description: Define who can access to the RDS ( ECS )
+    Type: AWS::EC2::SecurityGroup::Id
+
+  DBSnapshot:
+    Default: ''
+    Type: String
+    Description: (Optional) Name of the snapshot used to restore RDS.
+
+  DatabaseUser:
+    Default: root
+    Type: String
+    Description: Database admin account name
+    MinLength: 4
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: Name must begin with a letter and contain only alphanumeric characters
+
+  DatabasePassword:
+    Default: 12345678
+    NoEcho: true
+    Type: String
+    Description: Database admin account password
+    MinLength: 6
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: Password must contain only alphanumeric characters
+
+  PrivateSubnetAZ1:
+    Description: Place where the RDS will be located.
+    Type: String
+
+  PrivateSubnetAZ2:
+    Description: Place where a future read replica could be located.
+    Type: String
+
+  DatabaseName:
+    Default: rakutendb
+    Type: String
+    Description: Database name
+    MinLength: 1
+    MaxLength: 30
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: Name must begin with a letter and contain only alphanumeric characters
+
+  DatabaseSize:
+    Default: 5
+    Type: Number
+    Description: Database storage size in gigabytes (GB)
+    MinValue: 5
+    ConstraintDescription: Enter a size of at least 5 GB
+
+  DatabaseEngine:
+    Default: mysql
+    Type: String
+    Description: Database engines - PostgreSQL, MariaDB or MySQL
+    ConstraintDescription: Choose an engine from the drop down
+    AllowedValues:
+      - postgres
+      - mariadb
+      - mysql
+
+  DatabaseEngineVersion:
+    Default: 5.7
+    Type: String
+    Description: Database engines - PostgreSQL, MariaDB or MySQL
+
+  EncryptionAtRest:
+    Default: false
+    Type: String
+    Description: The optional flag for encryption at rest (db.t2.small and above)
+    ConstraintDescription: Only true or false are allowed
+    AllowedValues:
+      - true
+      - false
+
+  DatabaseInstanceClass:
+    Default: db.t2.micro
+    Type: String
+    Description: "Database instance class, e.g. db.t2.micro (free tier) - Engine support: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html"
+    ConstraintDescription: DB instance class not supported
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.t2.xlarge
+      - db.t2.2xlarge
+      - db.m4.large
+      - db.m4.xlarge
+      - db.m4.2xlarge
+      - db.m4.4xlarge
+      - db.m4.10xlarge
+      - db.m4.16xlarge
+      - db.r4.large
+      - db.r4.xlarge
+      - db.r4.2xlarge
+      - db.r4.4xlarge
+      - db.r4.8xlarge
+      - db.r4.16xlarge
+
+  EnvironmentName:
+    Description: Environment name, either dev or prod
+    Type: String
+    Default: stg
+    AllowedValues:
+      - stg
+      - prod
+      - dev
+    ConstraintDescription: Specify either dev or prod
+
+
+Conditions:
+
+  IsProd: !Equals [ !Ref EnvironmentName, prod ]
+
+  UseDBSnapshot: !Not [ !Equals [ !Ref DBSnapshot, "" ]]
+
+
+
+Resources:
+
+
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Database subnet group
+      SubnetIds:
+      - !Ref PrivateSubnetAZ2
+      - !Ref PrivateSubnetAZ1
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups:
+        - !Ref SecurityGroup
+      Engine: !Ref DatabaseEngine
+      EngineVersion: !Ref DatabaseEngineVersion
+      DBName:
+        !If [UseDBSnapshot, !Ref "AWS::NoValue", !Ref DatabaseName]
+      MasterUsername: !Ref DatabaseUser
+      MasterUserPassword: !Ref DatabasePassword
+      DBSnapshotIdentifier:
+        !If [UseDBSnapshot, !Ref DBSnapshot, !Ref "AWS::NoValue"]
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      AllocatedStorage: !Ref DatabaseSize
+      StorageType: gp2
+      MultiAZ: false
+      StorageEncrypted: !Ref EncryptionAtRest
+      CopyTagsToSnapshot: true
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+    DependsOn: DatabaseSubnetGroup
+
+
+
+
+Outputs:
+  Name:
+    Description: RDS Stack Name
+    Value: !Ref AWS::StackName
+    Export:
+      Name: !Sub ${AWS::StackName}-Name
+
+  RdsDbId:
+    Description: RDS Database ID
+    Value: !Ref Database
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseID
+
+  RdsDbURL:
+    Description: RDS Database URL
+    Value: !GetAtt Database.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseURL
+
+  DbUser:
+    Description: RDS Database admin account user
+    Value: !Ref DatabaseUser
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseUser
+
+  DbPassword:
+    Description: RDS Database admin account password
+    Value: !Ref DatabasePassword
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabasePassword

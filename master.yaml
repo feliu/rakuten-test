@@ -55,3 +55,26 @@ Resources:
                     PublicSubnet: !GetAtt VPC.Outputs.PublicSubnetAZ1
                     SubDomain: "bastion"
                     Domain: "casting-asia.net"
+    AppStaging:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/app.yaml
+            Parameters:
+                # Environment
+                EnvironmentName: "stg"
+                # ECS Cluster
+                ECSClusterInstanceType: "t2.micro"
+                ECSClusterSize: "1"
+                ECSSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+                # Application Load Balancer
+                Listener: !GetAtt ALB.Outputs.Listener
+                DNSLoadBalancer: !GetAtt ALB.Outputs.LoadBalancerUrl
+                # VPC
+                VPC: !GetAtt VPC.Outputs.VPC
+                PrivateSubnetAZ1: !GetAtt VPC.Outputs.PrivateSubnetStgAZ1
+                PrivateSubnetAZ2: !GetAtt VPC.Outputs.PrivateSubnetStgAZ2
+                # RDS
+                RDSSecurityGroup: !GetAtt SecurityGroups.Outputs.RDSSecurityGroup
+                DBSnapshot: ""
+                DatabaseInstanceClass: "db.t2.micro"
+                Domain: "casting-asia.net"

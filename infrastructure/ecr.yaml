@@ -1,0 +1,15 @@
+Description: >
+    This template contain the ECR repositories used for this project.
+
+Resources:
+    AppRepository:
+        Type: AWS::ECR::Repository
+        Properties: 
+            RepositoryName: app
+Outputs:
+    AppRepository:
+        Description: Docker image repository for the main app
+        Value: !Ref AppRepository
+
+
+
