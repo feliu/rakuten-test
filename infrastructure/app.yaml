@@ -1,0 +1,87 @@
+Description: >
+    ECS Cluster + RDS + App
+
+Parameters:
+
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+    VPC:
+      Description: VPC id where all the resources will be located.
+      Type: String
+
+    ECSClusterInstanceType:
+        Description: EC2 instance of the ECS Cluster
+        Type: String
+    ECSClusterSize:
+        Description: Number of EC2 instances running on the Cluster.
+        Type: String
+    PrivateSubnetAZ1:
+        Description: Main private subnet where all the EC2s and RDS will stay.
+        Type: String
+    PrivateSubnetAZ2:
+        Description: Secondary private subnet aimed for high available containers and read replicas.
+        Type: String
+    ECSSecurityGroup:
+        Description: Security group the defined how can access to the ECS ( mainly Load Balancer ).
+        Type: String
+    RDSSecurityGroup:
+        Description: Security group the defined how can access to the RDS ( ECS ).
+        Type: String
+    Listener:
+        Description: The Application Load Balancer listening to HTTP:5000.
+         Used for registering how we forward the app.
+        Type: String
+    DNSLoadBalancer:
+        Description: Internal DNS automatically assigned to the application load balancer.
+        Type: String
+    DBSnapshot:
+        Description: (Optional) Database snapshot for RDS.
+        Type: String
+    DatabaseInstanceClass:
+        Description: Instance type for RDS.
+        Type: String
+    Domain:
+        Description: Domain name used for our services.
+        Type: String
+
+
+Resources:
+    ECSCluster:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/ecs-cluster.yaml
+            Parameters:
+                EnvironmentName: !Ref EnvironmentName
+                InstanceType: !Ref ECSClusterInstanceType
+                ClusterSize: !Ref ECSClusterSize
+                VPC: !Ref VPC
+                SecurityGroup: !Ref ECSSecurityGroup
+                PrivateSubnetAZ1: !Ref PrivateSubnetAZ1
+                PrivateSubnetAZ2: !Ref PrivateSubnetAZ2
+    RDS:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/database.yaml
+            Parameters:
+                SecurityGroup: !Ref RDSSecurityGroup
+                DBSnapshot: !Ref DBSnapshot
+                DatabaseInstanceClass: !Ref DatabaseInstanceClass
+                Domain: !Ref Domain
+                SubDomain: "db-staging"
+                PrivateSubnetAZ1: !Ref PrivateSubnetAZ1
+                PrivateSubnetAZ2: !Ref PrivateSubnetAZ2
+ #   App:
+ #       Type: AWS::CloudFormation::Stack
+ #       Properties:
+ #           TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/services/app.yaml
+ #           Parameters:
+ #               VPC: !Ref VPC
+ #               Cluster: !GetAtt ECSCluster.Outputs.Cluster
+ #               Listener: !Ref Listener
+ #               DNSLoadBalancer: !Ref DNSLoadBalancer
+ #               ListenerPriority: 1
+ #               RepositoryName: "app"
+
+
+

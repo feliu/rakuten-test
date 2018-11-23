@@ -80,3 +80,14 @@ This set of templates deploys the following network design:
         --capabilities CAPABILITY_NAMED_IAM \
         --template-body file://master.yaml \
         --region eu-west-1 
+
+4. The bastion host will automatically get the public key from IAM users. Add a public key to the IAM user to be able to log in on the bastion.
+
+5. Log in the bastion. Example below.
+
+        ssh eduard.feliu@54.72.112.230
+
+6. Copy the file app.sql provided in the test and execute it using the mysql client from the bastion hosts. The bastion host is located in the public subnet and has access to the RDS.
+
+
+        mysql --host=mmd1bmfwru3q7ko8.cmuor8zcenjr.eu-west-1.rds.amazonaws.com --user=root --password=12345678 -s rakutendb < app.sql
