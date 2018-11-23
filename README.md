@@ -69,3 +69,14 @@ This set of templates deploys the following network design:
         --template-body file://infrastructure/bucket.yaml \
         --region eu-west-1  
 
+2. Upload the YAML files to the rakuten-infrastructure bucket to be able to deploy the multi-stack infrastructure.
+
+        aws s3 sync ./ s3://rakuten-infrastructure --acl bucket-owner-full-control --acl public-read --exclude='.*'
+
+3. Deploy the main stack of the app
+
+        aws cloudformation create-stack \
+        --stack-name master \
+        --capabilities CAPABILITY_NAMED_IAM \
+        --template-body file://master.yaml \
+        --region eu-west-1 
