@@ -44,3 +44,14 @@ Resources:
                 VPC: !GetAtt VPC.Outputs.VPC
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
+
+    BastionHost:
+            Type: AWS::CloudFormation::Stack
+            Properties:
+                TemplateURL: https://s3-eu-west-1.amazonaws.com/rakuten-infrastructure/infrastructure/bastion-host.yaml
+                Parameters:
+                    VPC: !GetAtt VPC.Outputs.VPC
+                    SecurityGroup: !GetAtt SecurityGroups.Outputs.BastionHostSecurityGroup
+                    PublicSubnet: !GetAtt VPC.Outputs.PublicSubnetAZ1
+                    SubDomain: "bastion"
+                    Domain: "casting-asia.net"
