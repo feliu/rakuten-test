@@ -11,34 +11,22 @@ This reference architecture provides a set of YAML templates for deploying Rakut
 5. VPC Availability Zones https://www.youtube.com/watch?v=ET_CSqdGsYg&list=PLv2a_5pNAko0Mijc6mnv04xeOut443Wnk&index=19
 6. Security Groups https://www.youtube.com/watch?v=-9j7BvAyb2w&list=PLv2a_5pNAko0Mijc6mnv04xeOut443Wnk&index=30
 7. ECS Core concepts. https://www.youtube.com/watch?v=eq4wL2MiNqo
-8. Docker on AWS - the right way. https://www.youtube.com/watch?v=ncN47QMt7nw
-9. Check the ref. architecure for ECS. Try to understand the project. Run the sample. https://github.com/aws-samples/ecs-refarch-cloudformation
 
 
 ## Overview
 
+ I created this architecture with automation and security in mind. The application and database are contained in a private subnet. The clients will be able to connect to the app using the load balancer. For access to the database, we will use the provided bastion host that automatically sync the public keys of the IAM users of the AWS account where its deployed.
 
 The repository consists of a set of nested templates that deploy the following:
 
  - A [VPC](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Introduction.html) with public and private subnets in one region using two availability zones.
  - A pair of [NAT gateways](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html) (one in each zone) to handle outbound traffic.
- - [Application Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/applicationloadbalancer/) host-based routes for each ECS service to route the inbound traffic to the correct service.
- - For each environment (Production, Staging, Development)
-     - An ECS cluster ( Depends on the VPC ).
-     - A container inside EC2: Debian with Flask
+ - [Application Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/applicationloadbalancer/)
+ - For each environment (Production, Staging, Development). (For now only one environment deployed)
+     - An ECS cluster
+     - A Container: Debian with Flask
      -  MYSQL RDS
  - Centralized container logging with [Amazon CloudWatch Logs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
-
-## Stack details
-
-| Template | Description |
-| --- | --- | 
-| [master.yaml](master.yaml) | This is the master template - deploy it to CloudFormation and it includes all of the others automatically. |
-| [infrastructure/vpc.yaml](infrastructure/vpc.yaml) | This template deploys a VPC with a pair of public and private subnets spread across two Availability Zones. It deploys an [Internet gateway](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html), with a default route on the public subnets. It deploys a pair of NAT gateways (one in each zone), and default routes for them in the private subnets. |
-| [infrastructure/database.yaml](infrastructure/database.yaml) | This template deploys an RDS inside a private subnet of the VPC. |
-| [infrastructure/security-groups.yaml](infrastructure/security-groups.yaml) | This template contains the [security groups](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html) required by the entire stack. They are created in a separate nested template, so that they can be referenced by all of the other nested templates. |
-| [infrastructure/load-balancers.yaml](infrastructure/load-balancers.yaml) | This template deploys an ALB to the public subnets, which exposes the various ECS services. It is created in in a separate nested template, so that it can be referenced by all of the other nested templates and so that the various ECS services can register with it. |
-| [infrastructure/ecs-cluster.yaml](infrastructure/ecs-cluster.yaml) | This template deploys an ECS cluster to the private subnets. |
 
 
 ### VPC architecture
@@ -58,10 +46,9 @@ This set of templates deploys the following network design:
 | Private Subnet | 10.180.64.0/21 | 2,041 | The development private subnet in the second Availability Zone |
 
 
-
 ## How to reproduce the setup
 
-1. Upload the bucket used to store the CloudFormation files.
+1. Create the bucket used to store the CloudFormation files.
 
         aws cloudformation create-stack \
         --stack-name bucket \
@@ -87,13 +74,13 @@ This set of templates deploys the following network design:
 
         ssh eduard.feliu@54.72.112.230
 
-6. Copy the file app.sql provided in the test and execute it using the mysql client from the bastion hosts. The bastion host is located in the public subnet and has access to the RDS. Example below.
+6. Copy the file app.sql provided in the test and execute it using the MySQL client from the bastion host. The bastion host is located in the public subnet and has access to the RDS. Example below.
 
         [eduard.feliu@ip-10-180-10-81 ~]$ mysql --host=md1bmfwru3q7ko8.cmuor8zcenjr.eu-west-1.rds.amazonaws.com --user=root --password=12345678 -s rakutendb < app.sql
         [eduard.feliu@ip-10-180-10-81 ~]$
 
 
-7. Create the ECR repository for the Docker image that will contain the Flask App.
+7. Create the ECR repository used by the Docker image that will contain the Flask App.
 
         aws cloudformation create-stack \
         --stack-name ecr \
@@ -106,7 +93,7 @@ This set of templates deploys the following network design:
         bash ./services/app/build_push_to_ecr.sh 220961139697 eu-west-1
 
 
-9. Uncomment the block code found on the file infrastructure/app.yaml
+9. In step 3, we create everything except for the ECS Service. Now that we have the database ready, Uncomment the block code found on the file infrastructure/app.yaml and update the stack.
 
         #   App:
         #       Type: AWS::CloudFormation::Stack
@@ -121,14 +108,9 @@ This set of templates deploys the following network design:
         #               RepositoryName: "app"
         #               MySQLHost: !GetAtt RDS.Outputs.RdsDbURL
 
+        bash update_infra.sh
 
-We commented this block because we need to have the RDS ready and the image on the ECR repository before deploying the Task on the ECS Cluster.
-
-10. Update the master stack again.
-
-        bash deploy_master_stack.sh
-
-11. Use the internal DNS of the load balancer to check if the app work correctly.
+11. Use the internal DNS of the load balancer to check if the app works correctly.
 
         curl master-1337603368.eu-west-1.elb.amazonaws.com:5000
 
