@@ -1,6 +1,7 @@
 {
   "hotels": [
     {
+      "id": 1,
       "available_rooms": {
           "occupants":4,
           "type": "premium"
