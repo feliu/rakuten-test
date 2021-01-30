@@ -1,0 +1,10 @@
+{
+  "hotels": [
+    {
+      "available_rooms": {
+          "occupants":4,
+          "type": "premium"
+      }
+    }
+  ]
+}
